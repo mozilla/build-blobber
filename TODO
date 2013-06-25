@@ -1,0 +1,30 @@
+HTTP API
+
+    POST /blobs/sha1/$hash
+        needs to be limited to specific IP ranges
+
+    GET  /blobs/sha1/$hash
+        anybody can retrieve files
+
+cmdline API
+
+    $MOZ_UPLOAD_CMD="upload.py -u http://upload.mozilla.org:1234 --branch mozilla-inbound"
+
+
+    test code:
+        if [ -n "$MOZ_UPLOAD_CMD" ]; then
+            $MOZ_UPLOAD_CMD screenshot.png
+        fi
+
+        outputs:
+            screenshot.png http://upload.mozilla.org:1234/blobs/sha1/asdfasfadsf
+            stackdumpdmp   http://upload.mozilla.org:1234/blobs/sha1/2134q3249
+
+
+metadata spec
+    filename
+    filesize
+    branch
+    mimetype
+    upload time
+    uploaded by ipLKJASDFLKJlasdflaskdjfasfd
