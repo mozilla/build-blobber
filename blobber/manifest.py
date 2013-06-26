@@ -3,7 +3,6 @@ import json
 from collections import namedtuple
 
 from blobber.hashes import sha1sum
-from blobber.utils import ignored
 
 FileEntry = namedtuple('FileEntry', ['type', 'hashalgo', 'hash', 'size', 'path', 'mtime', 'mode'])
 DirEntry = namedtuple('DirEntry', ['type', 'path', 'mtime', 'mode'])
@@ -71,9 +70,3 @@ def convert_manifest(manifest):
             raise ValueError("Unsupported entry type %s" % e[0])
         new_entries.append(e)
     manifest['entries'] = new_entries
-
-with ignored(ImportError):
-    import yaml
-
-    def to_yaml(manifest):
-        return yaml.dumps(manifest)
