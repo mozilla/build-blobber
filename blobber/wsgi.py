@@ -71,47 +71,8 @@ def get_blob(hashalgo, blobhash):
     return static_file(*reversed(os.path.split(path)), mimetype='application/octet-stream')
 
 
-@app.post('/manifests')
-def upload_manifest():
-    # If the posted data is too large, we can't process it in memory and need
-    # to spawn a worker
-    manifest = request.json
-    if manifest is None:
-        # XXX TODO: do this in a separate process otherwise we can use too much
-        # ram
-        manifest = json.load(request.body)
-
-    try:
-        manifest_id = app.backend.import_manifest(manifest)
-        response.status = 202
-        return {'manifest_id': manifest_id}
-    except MissingBlobsError as e:
-        response.status = 400
-        return {"missing_blobs": e.missing_blobs}
-
-
-@app.post("/archives")
-def upload_archive():
-    # Save archive to temporary location
-    data = request.files.data
-    if not data.file:
-        abort(400)
-
-    tmpfile, _hsh = save_request_file(data.file)
-
-    try:
-        manifest_id = app.backend.injest_archive(tmpfile)
-        # Return manifest id
-        return str(manifest_id)
-    finally:
-        os.unlink(tmpfile)
-
-
 def main():
-    from blobber.fs_plugin import FileBackend, ManifestBackend
     B = BlobberBackend({})
-    B.db = ManifestBackend({"dir": "manifests"})
-    B.files = FileBackend({"dir": "file_store"})
 
     app.backend = B
     app.run(host='0.0.0.0', port=8080, debug=True, reloader=True)
