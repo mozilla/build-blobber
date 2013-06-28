@@ -62,7 +62,7 @@ def upload_blob(hashalgo, blobhash):
         response.status = 202
     finally:
         print tmpfile
-        #os.unlink(tmpfile)
+        os.unlink(tmpfile)
 
 
 @app.get('/blobs/:hashalgo/:blobhash')

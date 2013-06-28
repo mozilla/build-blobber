@@ -1,4 +1,6 @@
 import unittest
+import tempfile
+import shutil
 from webtest import TestApp
 
 from blobber.wsgi import app
@@ -15,10 +17,17 @@ class _BaseTest(unittest.TestCase):
 
     def setUp(self):
         B = BlobberBackend({})
-        B.files = FileBackend({"dir": "file_store"})
+        # get a temporary file directory in /tmp
+        self.tempdir = tempfile.mkdtemp()
+        # create subfolder for testing evn use
+        dir_testpath = tempfile.mkdtemp(suffix='store',
+                                        prefix='file_',
+                                        dir=self.tempdir)
+
+        B.files = FileBackend({"dir": dir_testpath})
         app.backend = B
 
         self.app = TestApp(app)
 
     def tearDown(self):
-        pass
+        shutil.rmtree(self.tempdir)
