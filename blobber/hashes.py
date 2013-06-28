@@ -3,6 +3,11 @@ from functools import partial
 
 from blobber.async import sleep
 
+def stringhash(stringobj, hashalgo):
+    h = hashlib.new(hashalgo)
+    h.update(stringobj)
+    return h.hexdigest()
+
 
 def filehash(filename, hashalgo):
     h = hashlib.new(hashalgo)

@@ -1,7 +1,7 @@
 import hashlib
 
 from common import _BaseTest
-from blobber.hashes import filehash
+from blobber.hashes import filehash, stringhash
 
 class UploadFileTest(_BaseTest):
 
@@ -17,5 +17,9 @@ class UploadFileTest(_BaseTest):
 
             # get file from wsgi server side
             ret = self.app.get("/blobs/sha1/%s" % file_hash)
-
             self.assertEqual(ret.status_code, 200)
+
+            # make sure the files are the same
+            check_hash = stringhash(ret.body, 'sha1')
+            self.assertEqual(file_hash, check_hash)
+
