@@ -30,9 +30,8 @@ class BlobberBackend(object):
 
 
 if __name__ == '__main__':
-    from blobber.fs_plugin import FileBackend, ManifestBackend
+    from blobber.fs_plugin import FileBackend
     B = BlobberBackend({})
-    B.db = ManifestBackend({"dir": "manifests"})
     B.files = FileBackend({"dir": "file_store"})
 
     import argparse

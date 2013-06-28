@@ -72,13 +72,13 @@ def get_blob(hashalgo, blobhash):
 
 
 def main():
-    from blobber.fs_plugin import FileBackend, ManifestBackend
+    from blobber.fs_plugin import FileBackend
     B = BlobberBackend({})
 
     B.files = FileBackend({"dir": "file_store"})
 
     app.backend = B
-    app.run(host='0.0.0.0', port=8080, debug=True, reloader=True)
+    app.run(host='127.0.0.1', port=8080, debug=True, reloader=True)
 
 if __name__ == '__main__':
     main()

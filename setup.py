@@ -5,5 +5,8 @@ setup(name="blobber",
       version="0.1",
       author="Chris AtLee",
       author_email="chris@atlee.ca",
-      install_requires=["bottle", "requests", "sh", "python-magic", "docopt", "poster"],
+      install_requires=["bottle", "requests",
+                        "sh", "python-magic",
+                        "docopt", "poster", "nose"
+                        "webtest"],
       )
