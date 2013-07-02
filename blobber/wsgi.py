@@ -59,6 +59,8 @@ def upload_blob(hashalgo, blobhash):
             abort(400, "Invalid hash")
 
         app.backend.add_blob(hashalgo, blobhash, tmpfile)
+        # add metadata into database
+        # TODO
         response.status = 202
     finally:
         print tmpfile

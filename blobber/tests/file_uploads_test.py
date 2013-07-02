@@ -20,6 +20,7 @@ class UploadFileTest(_BaseTest):
             self.assertEqual(ret.status_code, 200)
 
             # make sure the files are the same
+            # TODO - reading in blocks to avoid in-memory exceeding
             check_hash = stringhash(ret.body, 'sha1')
             self.assertEqual(file_hash, check_hash)
 

@@ -12,7 +12,8 @@ class _BaseTest(unittest.TestCase):
     TESTING_FILES = {
         "text_file": "files/text_file",
         "image": "files/Mozilla.jpg",
-        "stackdump": "files/core"
+        "stackdump": "files/core",
+        "bad_data": "files/bad_data",
     }
 
     def setUp(self):
