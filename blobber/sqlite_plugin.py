@@ -52,7 +52,8 @@ class MetadataBackend(object):
 
         return result
 
-    def has_blob_metadata(self, blobhash, filename):
+    def has_blob_metadata(self, blobhash, filename, filesize,
+                          branch, mimetype, upload_time, upload_ip):
         con = sqlite3.connect(self.config['name'])
         c = con.cursor()
         c.execute("SELECT * FROM md WHERE hash=? AND filename=?",
@@ -61,10 +62,7 @@ class MetadataBackend(object):
         c.close()
         con.close()
 
-        if result is not []:
-            return True
-        else:
-            return False
+        return True if result else False
 
     def add_blob_metadata(self, blobhash, filename, filesize,
                           branch, mimetype, upload_time, upload_ip):

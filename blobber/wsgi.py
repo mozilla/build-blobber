@@ -4,11 +4,12 @@ import os
 import hashlib
 import json
 
+from datetime import datetime
 from functools import partial
 
 from bottle import Bottle, request, abort, response, static_file
-
-from blobber.backend import BlobberBackend, MissingBlobsError
+from blobber.sqlite_plugin import MetadataBackend
+from blobber.backend import BlobberBackend
 
 import logging
 log = logging.getLogger(__name__)
@@ -51,16 +52,36 @@ def upload_blob(hashalgo, blobhash):
 
     data = request.files.data
     if not data.file:
+        print 'miss uploaded file'
         abort(400, "Missing uploaded file")
 
     tmpfile, _hsh = save_request_file(data.file, hashalgo)
     try:
         if _hsh != blobhash:
+            print 'invalid hash'
             abort(400, "Invalid hash")
 
         app.backend.add_blob(hashalgo, blobhash, tmpfile)
-        # add metadata into database
-        # TODO
+        # determine some of the metadata
+        meta_dict = {
+            'blobhash': blobhash,
+            'upload_time': datetime.now(),
+            'upload_ip': request.remote_addr
+        }
+
+        # the rest of the metadata is taken from request
+        fields = ('filename', 'filesize', 'branch', 'mimetype')
+        for field in fields:
+            if field not in request.forms:
+                print '%s missing' % field
+                abort(400, '%s missing' % field)
+
+        meta_dict.update(request.forms)
+        # sanity check - duplicate file uploads would fail the first if
+        import pdb; pdb.set_trace()
+        if not app.meta_backend.has_blob_metadata(**meta_dict):
+            app.meta_backend.add_blob_metadata(**meta_dict)
+
         response.status = 202
     finally:
         print tmpfile
@@ -76,10 +97,12 @@ def get_blob(hashalgo, blobhash):
 def main():
     from blobber.fs_plugin import FileBackend
     B = BlobberBackend({})
-
     B.files = FileBackend({"dir": "file_store"})
-
     app.backend = B
+
+    metaB = MetadataBackend({'name': 'mydatabase.db'})
+    app.meta_backend = metaB
+
     app.run(host='127.0.0.1', port=8080, debug=True, reloader=True)
 
 if __name__ == '__main__':

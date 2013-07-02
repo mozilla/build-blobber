@@ -1,4 +1,4 @@
-HTTP API
+WSGI webapp - HTTP API
 
     POST /blobs/sha1/$hash
         needs to be limited to specific IP ranges
@@ -6,7 +6,7 @@ HTTP API
     GET  /blobs/sha1/$hash
         anybody can retrieve files
 
-cmdline API
+Testing machines - cmdline API
 
     $MOZ_UPLOAD_CMD="upload.py -u http://upload.mozilla.org:1234 --branch mozilla-inbound"
 
@@ -22,6 +22,7 @@ cmdline API
 
 
 metadata spec
+    hash
     filename
     filesize
     branch
