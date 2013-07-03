@@ -78,7 +78,6 @@ def upload_blob(hashalgo, blobhash):
 
         meta_dict.update(request.forms)
         # sanity check - duplicate file uploads would fail the first if
-        import pdb; pdb.set_trace()
         if not app.meta_backend.has_blob_metadata(**meta_dict):
             app.meta_backend.add_blob_metadata(**meta_dict)
 

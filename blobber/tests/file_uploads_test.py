@@ -1,4 +1,5 @@
 import hashlib
+from collections import OrderedDict
 
 from common import _BaseTest
 from blobber.hashes import filehash, stringhash
@@ -7,11 +8,12 @@ class UploadFileTest(_BaseTest):
 
     def test_file_upload(self):
 
-        for file_type, _file in self.TESTING_FILES.items():
+        for file_type, _file_dict in self.MOCK_OBJECTS.items():
             # post the file on wsgi server side
-            file_hash = filehash(_file, 'sha1')
+            file_hash = filehash(_file_dict['filename'], 'sha1')
             ret = self.app.post("/blobs/sha1/%s" % file_hash,
-                                upload_files=[("data", _file)],
+                                OrderedDict([(k,v) for k, v in _file_dict.items()]),
+                                upload_files=[("data", _file_dict['filename'])],
                                 status="*")
             self.assertEqual(ret.status_code, 202)
 
