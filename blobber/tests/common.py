@@ -15,9 +15,6 @@ class _BaseTest(unittest.TestCase):
 
     MOCK_OBJECTS = {
         "text_file": ImmutableDict({
-            "blobhash": "a1b563a685fc1f8e3eab78cbc941dc9a80507456",
-            "upload_time": int(time.time()),
-            "upload_ip": "127.0.0.1",
             "filename": "files/text_file",
             "filesize": "3749",
             "branch": "branch-input",
@@ -25,9 +22,6 @@ class _BaseTest(unittest.TestCase):
         }),
 
         "image": ImmutableDict({
-            "blobhash": "44464cab6ee4dc179bf8f0b52a2d1343c4e1ae9f",
-            "upload_time": int(time.time()),
-            "upload_ip": "127.0.0.1",
             "filename": "files/Mozilla.jpg",
             "filesize": "36565",
             "branch": "branch-input",
@@ -35,9 +29,6 @@ class _BaseTest(unittest.TestCase):
         }),
 
         "stackdump": ImmutableDict({
-            "blobhash": "c49e6fe7321f6db7f54582c41e82f4dbe2e472c8",
-            "upload_time": int(time.time()),
-            "upload_ip": "127.0.0.1",
             "filename": "files/core",
             "filesize": "233472",
             "branch": "branch-input",

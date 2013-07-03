@@ -76,7 +76,9 @@ def upload_blob(hashalgo, blobhash):
                 print '%s missing' % field
                 abort(400, '%s missing' % field)
 
-        meta_dict.update(request.forms)
+        # make sure no extra args get into database
+        meta_dict.update({k: request.forms[k] for k in fields})
+
         app.meta_backend.add_blob_metadata(**meta_dict)
 
         response.status = 202
