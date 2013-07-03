@@ -1,7 +1,7 @@
 import sqlite3
 import string
 import random
-from datetime import datetime
+import time
 
 class MetadataBackend(object):
     def __init__(self, config):
@@ -28,7 +28,7 @@ class MetadataBackend(object):
                 filesize VARCHAR(255),
                 branch VARCHAR(255),
                 mimetype VARCHAR(255),
-                uploadTime DATETIME,
+                uploadTime INTEGER,
                 uploadByIp VARCHAR(255));"""
 
         try:
@@ -69,5 +69,5 @@ if __name__=="__main__":
     m = MetadataBackend({'name': 'mydatabase.db'})
     m.add_blob_metadata("bcgssdffw", "test.file", "1049814",
                         "test-branch", "application/text",
-                        datetime.now(), "192.168.0.1")
+                        int(time.time()), "192.168.0.1")
     print m.has_blob_metadata("bcgssdffw", "test.file")

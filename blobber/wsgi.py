@@ -3,8 +3,8 @@ import tempfile
 import os
 import hashlib
 import json
+import time
 
-from datetime import datetime
 from functools import partial
 
 from bottle import Bottle, request, abort, response, static_file
@@ -65,7 +65,7 @@ def upload_blob(hashalgo, blobhash):
         # determine some of the metadata
         meta_dict = {
             'blobhash': blobhash,
-            'upload_time': datetime.now(),
+            'upload_time': int(time.time()),
             'upload_ip': request.remote_addr
         }
 
