@@ -8,5 +8,6 @@ setup(name="blobber",
       install_requires=["bottle", "requests",
                         "sh", "python-magic",
                         "docopt", "poster", "nose"
-                        "webtest", "werkzeug"],
+                        "webtest", "werkzeug",
+                        "SQLAlchemy", "bottle-sqlalchemy"],
       )

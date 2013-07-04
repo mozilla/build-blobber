@@ -15,7 +15,9 @@ class UploadFileTest(_BaseTest):
             ret = self.app.post("/blobs/sha1/%s" % file_hash,
                                 OrderedDict([(k,v) for k, v in _file_dict.items()]),
                                 upload_files=[("data", _file_dict['filename'])],
-                                status="*")
+                                status="*",
+                                extra_environ={"REMOTE_ADDR": "127.0.0.1"},
+                                )
             self.assertEqual(ret.status_code, 202)
 
             # get file from wsgi server side
@@ -38,6 +40,7 @@ class UploadFileTest(_BaseTest):
             ret = self.app.post("/blobs/sha1/%s" % file_hash,
                                 OrderedDict([(k,v) for k, v in wrong_dict.items()]),
                                 upload_files=[("data", _file_dict['filename'])],
+                                extra_environ={"REMOTE_ADDR": "127.0.0.1"},
                                 status="*")
             # make sure no error page is returned from server
             self.assertEqual(ret.status_code, 202)
@@ -63,6 +66,7 @@ class UploadFileTest(_BaseTest):
             ret = self.app.post("/blobs/sha1/%s" % file_hash,
                                 OrderedDict([(k,v) for k, v in wrong_dict.items()]),
                                 upload_files=[("data", _file_dict['filename'])],
+                                extra_environ={"REMOTE_ADDR": "127.0.0.1"},
                                 status="*")
             # make sure no success page is returned from server
             self.assertEqual(ret.status_code, 400)

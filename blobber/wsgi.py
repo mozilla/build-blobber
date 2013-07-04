@@ -3,19 +3,20 @@ import tempfile
 import os
 import hashlib
 import json
+import logging
 import time
 
 from functools import partial
 
+from sqlalchemy import create_engine
+from bottle.ext import sqlalchemy as sqlalchemy_ext
 from bottle import Bottle, request, abort, response, static_file
-from blobber.sqlite_plugin import MetadataBackend
 from blobber.backend import BlobberBackend
+from sqlalchemy_schema import Base, MetadataBackend
 
-import logging
 log = logging.getLogger(__name__)
 
 app = Bottle()
-
 
 def save_request_file(fileobj, hashalgo=None):
     """
@@ -42,7 +43,7 @@ def save_request_file(fileobj, hashalgo=None):
 
 
 @app.post('/blobs/:hashalgo/:blobhash')
-def upload_blob(hashalgo, blobhash):
+def upload_blob(hashalgo, blobhash, meta_db):
     if app.backend.has_blob(hashalgo, blobhash):
         # All done!
         response.status = 202
@@ -79,7 +80,8 @@ def upload_blob(hashalgo, blobhash):
         # make sure no extra args get into database
         meta_dict.update({k: request.forms[k] for k in fields})
 
-        app.meta_backend.add_blob_metadata(**meta_dict)
+        entry = MetadataBackend(**meta_dict)
+        meta_db.add(entry)
 
         response.status = 202
     finally:
@@ -88,7 +90,7 @@ def upload_blob(hashalgo, blobhash):
 
 
 @app.get('/blobs/:hashalgo/:blobhash')
-def get_blob(hashalgo, blobhash):
+def get_blob(hashalgo, blobhash, meta_db):
     path = app.backend.get_blob_path(hashalgo, blobhash)
     return static_file(*reversed(os.path.split(path)), mimetype='application/octet-stream')
 
@@ -99,8 +101,18 @@ def main():
     B.files = FileBackend({"dir": "file_store"})
     app.backend = B
 
-    metaB = MetadataBackend({'name': 'mydatabase.db'})
-    app.meta_backend = metaB
+    cur_path = os.path.dirname(os.path.abspath(__file__))
+    engine = create_engine("sqlite:////%s/metadata.db" % cur_path)
+
+    plugin = sqlalchemy_ext.Plugin(
+        engine,
+        Base.metadata,
+        keyword="meta_db",
+        create=True,
+        commit=True,
+        use_kwargs=False,
+    )
+    app.install(plugin)
 
     app.run(host='127.0.0.1', port=8080, debug=True, reloader=True)
 
