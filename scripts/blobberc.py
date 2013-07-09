@@ -42,7 +42,14 @@ def upload_file(urls, filename, hashalgo='sha1', blobhash=None, check_first=Fals
     url = urlparse.urljoin(urls[0], '/blobs/{}/{}'.format(hashalgo, blobhash))
 
     log.debug("posting file to %s", url)
-    datagen, headers = poster.encode.multipart_encode({'data': open(filename, 'rb')})
+
+    datagen, headers = poster.encode.multipart_encode({
+        'data': open(filename, 'rb'),
+        'filename': filename,
+        'filesize': os.path.getsize(filename),
+        'branch': 'branch-input',
+        'mimetype': 'application/octet-stream',
+    })
     req = urllib2.Request(url, datagen, headers)
     urllib2.urlopen(req)
 
