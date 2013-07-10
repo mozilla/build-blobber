@@ -28,6 +28,8 @@ class BlobberBackend(object):
     def get_blob_path(self, hashalgo, blobhash):
         return self.files.get_blob_path(hashalgo, blobhash)
 
+    def delete_blob(self, hashalgo, blobhash):
+        return self.files.delete_blob(hashalgo, blobhash)
 
 if __name__ == '__main__':
     from blobber.fs_plugin import FileBackend

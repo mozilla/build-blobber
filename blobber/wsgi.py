@@ -97,8 +97,9 @@ def get_blob(hashalgo, blobhash, meta_db):
 
 def main():
     from blobber.fs_plugin import FileBackend
+    from config import dir
     B = BlobberBackend({})
-    B.files = FileBackend({"dir": "file_store"})
+    B.files = FileBackend({"dir": dir})
     app.backend = B
 
     cur_path = os.path.dirname(os.path.abspath(__file__))

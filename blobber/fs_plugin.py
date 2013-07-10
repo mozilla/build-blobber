@@ -37,3 +37,7 @@ class FileBackend(object):
             for block in iter(partial(src.read, 1024 ** 2), ''):
                 dst.write(block)
         os.rename(p + ".tmp", p)
+
+    def delete_blob(self, hashalgo, blobhash):
+        p = self._make_path(hashalgo, blobhash)
+        os.remove(p)
