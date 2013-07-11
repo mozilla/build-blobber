@@ -32,21 +32,21 @@ class _BaseTest(unittest.TestCase):
     MOCK_OBJECTS = {
         "text_file": ImmutableDict({
             "filename": "files/text_file",
-            "filesize": "3749",
+            "filesize": 3749,
             "branch": "branch-input",
             "mimetype": "application/octet-stream",
         }),
 
         "image": ImmutableDict({
             "filename": "files/Mozilla.jpg",
-            "filesize": "36565",
+            "filesize": 36565,
             "branch": "branch-input",
             "mimetype": "application/octet-stream",
         }),
 
         "stackdump": ImmutableDict({
             "filename": "files/core",
-            "filesize": "233472",
+            "filesize": 233472,
             "branch": "branch-input",
             "mimetype": "application/octet-stream",
         }),
@@ -61,7 +61,7 @@ class _BaseTest(unittest.TestCase):
                                         prefix='file_',
                                         dir=self.tempdir)
         B = BlobberBackend({})
-        B.files = FileBackend({"dir": dir_testpath})
+        B.files = FileBackend({"DIR": dir_testpath})
         app.backend = B
 
         # redo database for each set

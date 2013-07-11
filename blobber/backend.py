@@ -3,7 +3,7 @@ import os
 from blobber.hashes import sha1sum
 from blobber.archives import unpack_archive
 from blobber.manifest import make_manifest, FILE, convert_manifest
-
+from config import DIR
 
 class MissingBlobsError(Exception):
     def __init__(self, missing_blobs):
@@ -34,7 +34,7 @@ class BlobberBackend(object):
 if __name__ == '__main__':
     from blobber.fs_plugin import FileBackend
     B = BlobberBackend({})
-    B.files = FileBackend({"dir": "file_store"})
+    B.files = FileBackend({"DIR": DIR})
 
     import argparse
     parser = argparse.ArgumentParser()

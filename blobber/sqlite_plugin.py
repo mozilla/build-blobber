@@ -25,7 +25,7 @@ class MetadataBackend(object):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 hash VARCHAR(255),
                 filename VARCHAR(255),
-                filesize VARCHAR(255),
+                filesize VARCHAR(2048),
                 branch VARCHAR(255),
                 mimetype VARCHAR(255),
                 uploadTime INTEGER,

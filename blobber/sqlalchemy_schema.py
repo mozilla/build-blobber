@@ -6,9 +6,9 @@ Base = declarative_base()
 class MetadataBackend(Base):
     __tablename__ = "metadata"
     id = Column(Integer, primary_key=True)
-    hash = Column(String(255), nullable=False)
-    filename = Column(String(255), nullable=False)
-    filesize = Column(String(255), nullable=False)
+    hash = Column(String(255), nullable=False, index=True)
+    filename = Column(String(2048), nullable=False)
+    filesize = Column(Integer, nullable=False)
     branch = Column(String(255), nullable=False)
     mimetype = Column(String(255), nullable=False)
     uploadTime = Column(Integer, nullable=False)

@@ -9,7 +9,7 @@ from blobber.utils import mkdiropen
 class FileBackend(object):
     def __init__(self, config):
         self.config = config
-        self.dir = config['dir']
+        self.dir = config['DIR']
 
     def _make_path(self, hashalgo, blobhash):
         d = os.path.join(self.dir, hashalgo, blobhash[0:2], blobhash[2:4])

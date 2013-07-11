@@ -1,1 +1,2 @@
-dir = "file_store"
+DIR = "file_store"
+METADB_NAME = "metadata.db"

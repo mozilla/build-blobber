@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 from blobber.backend import BlobberBackend
 from blobber.fs_plugin import FileBackend
-from config import dir
+from config import DIR, METADB_NAME
 
 # number of seconds in a month of 30-days
 month_time = int(2592000)
@@ -17,11 +17,11 @@ class GarbageCollector:
         self.table = MetadataBackend.__table__
 
         cur_path = os.path.dirname(os.path.abspath(__file__))
-        self.engine = create_engine("sqlite:////%s/metadata.db" % cur_path)
+        self.engine = create_engine("sqlite:////%s/%s" % cur_path, METADB_NAME)
 
         self.Session = sessionmaker(bind=self.engine)
         B = BlobberBackend({})
-        B.files = FileBackend({"dir": dir})
+        B.files = FileBackend({"DIR": DIR})
         self.backend = B
 
     def connect_to_database(self):
