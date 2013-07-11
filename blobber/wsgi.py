@@ -44,13 +44,6 @@ def save_request_file(fileobj, hashalgo=None):
 
 @app.post('/blobs/:hashalgo/:blobhash')
 def upload_blob(hashalgo, blobhash, meta_db):
-    if app.backend.has_blob(hashalgo, blobhash):
-        # All done!
-        response.status = 202
-        # consume the file to be nice
-        data = request.files.data
-        return
-
     data = request.files.data
     if not data.file:
         print 'miss uploaded file'
@@ -103,7 +96,7 @@ def main():
     app.backend = B
 
     cur_path = os.path.dirname(os.path.abspath(__file__))
-    engine = create_engine("sqlite:////%s/%s" % cur_path, METADB_NAME)
+    engine = create_engine("sqlite:////%s/%s" % (cur_path, METADB_NAME))
 
     plugin = sqlalchemy_ext.Plugin(
         engine,
