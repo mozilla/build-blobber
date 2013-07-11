@@ -1,9 +1,8 @@
 import time
 import os
-from sqlalchemy.sql import select, delete, text
+from sqlalchemy.sql import select, delete
 from sqlalchemy import create_engine
 from sqlalchemy_schema import MetadataBackend
-from sqlalchemy.orm import sessionmaker
 
 from blobber.backend import BlobberBackend
 from blobber.fs_plugin import FileBackend
@@ -17,9 +16,8 @@ class GarbageCollector:
         self.table = MetadataBackend.__table__
 
         cur_path = os.path.dirname(os.path.abspath(__file__))
-        self.engine = create_engine("sqlite:////%s/%s" % cur_path, METADB_NAME)
+        self.engine = create_engine("sqlite:////%s/%s" % (cur_path, METADB_NAME))
 
-        self.Session = sessionmaker(bind=self.engine)
         B = BlobberBackend({})
         B.files = FileBackend({"DIR": DIR})
         self.backend = B
@@ -27,10 +25,6 @@ class GarbageCollector:
     def connect_to_database(self):
         conn = self.engine.connect()
         return conn
-
-    @property
-    def session(self):
-        return self.Session()
 
     def delete_metadata(self):
         conn = self.connect_to_database()
@@ -40,9 +34,9 @@ class GarbageCollector:
         result = conn.execute(s, erase_point=critical_date)
         self.hashes = [row for row in result]
 
-        ids = str(tuple([row[0] for row in self.hashes]))
-        t = text("DELETE FROM metadata WHERE id in %s;" % ids)
-        result = conn.execute(t)
+        ids = [row[0] for row in self.hashes]
+        d = self.table.delete().where(self.table.c.id.in_(ids))
+        result = conn.execute(d)
 
     def delete_data(self):
         hashes = [row[1] for row in self.hashes]
