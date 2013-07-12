@@ -37,14 +37,18 @@ class GarbageCollector:
         ids = [row[0] for row in self.hashes]
         d = self.table.delete().where(self.table.c.id.in_(ids))
         result = conn.execute(d)
+        conn.close()
 
     def delete_data(self):
+        conn = self.connect_to_database()
+        # FIXME: possible race condition in here between select and delete
         hashes = [row[1] for row in self.hashes]
         for h in hashes:
             s = select([self.table]).where("hash=:hash_id")
             results = conn.execute(s, hash_id=h)
-            if not results:
+            if not results.fetchone():
                 self.backend.delete_blob('sha1', h)
+        conn.close()
 
     def run(self):
         self.delete_metadata()
