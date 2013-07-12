@@ -7,7 +7,8 @@ setup(name="blobber",
       author_email="chris@atlee.ca",
       install_requires=["bottle", "requests",
                         "sh", "python-magic",
-                        "docopt", "poster", "nose"
-                        "webtest", "werkzeug",
-                        "SQLAlchemy", "bottle-sqlalchemy"],
+                        "docopt", "poster", "nose",
+                        "WebTest", "Werkzeug",
+                        "SQLAlchemy", "bottle-sqlalchemy",
+                        "argparse", "wsgiref"]
       )
