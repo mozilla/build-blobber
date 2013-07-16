@@ -44,6 +44,7 @@ def save_request_file(fileobj, hashalgo=None):
 
 @app.post('/blobs/:hashalgo/:blobhash')
 def upload_blob(hashalgo, blobhash, meta_db):
+    #TODO: limit to specific IP ranges
     data = request.files.data
     if not data.file:
         print 'miss uploaded file'
