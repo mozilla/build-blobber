@@ -18,8 +18,6 @@ import requests
 import requests.exceptions
 import poster.encode
 
-import blobber.manifest
-import blobber.archives
 import blobber.hashes
 
 import logging
