@@ -8,14 +8,11 @@
 
 FILE                   Local file(s) to upload
 """
-import random
 import urlparse
 import os
-import shutil
 import urllib2
 import hashlib
 import requests
-import requests.exceptions
 import poster.encode
 import logging
 log = logging.getLogger(__name__)
