@@ -15,6 +15,7 @@ import hashlib
 import requests
 import poster.encode
 import logging
+import random
 log = logging.getLogger(__name__)
 
 from functools import partial
@@ -26,17 +27,44 @@ def filehash(filename, hashalgo):
             h.update(block)
     return h.hexdigest()
 
+
 sha1sum = partial(filehash, hashalgo='sha1')
 
-def upload_file(urls, filename, branch, hashalgo='sha1', blobhash=None):
+
+def upload_file(hosts, filename, branch, hashalgo='sha1',
+                blobhash=None, attempts=10):
 
     if blobhash is None:
         blobhash = filehash(filename, hashalgo)
 
-    url = urlparse.urljoin(urls[0], '/blobs/{}/{}'.format(hashalgo, blobhash))
+    log.info("Attempting to upload file %s." % filename)
+    host_pool = hosts[:]
+    n = 1
+    while n <= attempts:
+        random.shuffle(host_pool)
+        host = host_pool[0]
+        log.info("Picking up %s host after shuffling." % host)
+        post_params = {
+            'host': host,
+            'filename': filename,
+            'branch': branch,
+            'hashalgo': hashalgo,
+            'blobhash': blobhash,
+        }
+        log.info("Call _post_file - attempt #%d." % (n))
+        if _post_file(**post_params):
+            log.info("File %s was uploaded successfully at %s." %
+                        (filename, host))
+            break
+        n += 1
 
-    log.debug("posting file to %s", url)
+    if n == attempts+1:
+        log.info("Nr. of attempts exceeded. Uploading %s file failed!" %
+                    (filename))
 
+
+def _post_file(host, filename, branch, hashalgo, blobhash):
+    url = urlparse.urljoin(host, '/blobs/{}/{}'.format(hashalgo, blobhash))
     datagen, headers = poster.encode.multipart_encode({
         'data': open(filename, 'rb'),
         'filename': filename,
@@ -45,19 +73,29 @@ def upload_file(urls, filename, branch, hashalgo='sha1', blobhash=None):
         'mimetype': 'application/octet-stream',
     })
     req = urllib2.Request(url, datagen, headers)
-    urllib2.urlopen(req)
+    log.debug("Posting file to %s", url)
+    try:
+        urllib2.urlopen(req)
+    except urllib2.URLError:
+        log.debug("Posting file %s failed." % filename)
+        return False
 
-def upload_dir(urls, dirname, branch, hashalgo='sha1'):
-    log.info("opening the directory to read files")
+    log.debug("Posting file %s sucessfully." % filename)
+    return True
+
+
+def upload_dir(hosts, dirname, branch, hashalgo='sha1'):
+    log.info("Opening the directory to read the files ...")
     dir_files = [f for f in os.listdir(dirname)
                  if os.path.isfile(os.path.join(dirname, f))]
 
-    log.info("Go through each file up upload to server")
+    log.debug("Iterate through all files in directory:")
     for f in dir_files:
         filename = os.path.join(dirname, f)
-        log.info("Uploading %s", filename)
-        upload_file(urls, filename, branch)
-    log.info("Directory files uploaded successfully.")
+        upload_file(hosts, filename, branch)
+
+    log.info("Iteration through directory files is now over.")
+
 
 def main():
     from docopt import docopt
