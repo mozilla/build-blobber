@@ -37,7 +37,7 @@ def upload_file(hosts, filename, branch, hashalgo='sha1',
     if blobhash is None:
         blobhash = filehash(filename, hashalgo)
 
-    log.info("Attempting to upload file %s." % filename)
+    log.info("Attempting to upload file %s" % filename)
     host_pool = hosts[:]
     n = 1
     while n <= attempts:
@@ -55,6 +55,8 @@ def upload_file(hosts, filename, branch, hashalgo='sha1',
         if _post_file(**post_params):
             log.info("File %s was uploaded successfully at %s." %
                         (filename, host))
+            log.info("File %s is now accessible at %s/blobs/%s/%s" %
+                        (filename, host, hashalgo, blobhash))
             break
         n += 1
 
