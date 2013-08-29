@@ -10,5 +10,6 @@ setup(name="blobber",
                         "docopt", "poster", "nose",
                         "WebTest", "Werkzeug",
                         "SQLAlchemy", "bottle-sqlalchemy",
-                        "argparse", "wsgiref"]
+                        "argparse", "wsgiref", "Fabric",
+                        "path.py"]
       )
