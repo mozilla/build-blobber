@@ -10,7 +10,8 @@ from functools import partial
 
 from sqlalchemy import create_engine
 from bottle.ext import sqlalchemy as sqlalchemy_ext
-from bottle import Bottle, request, abort, response, static_file
+from bottle import Bottle, request, abort, response, static_file, \
+                    HTTPError
 from blobber.backend import BlobberBackend
 from sqlalchemy_schema import Base, MetadataBackend
 
@@ -85,8 +86,16 @@ def upload_blob(hashalgo, blobhash, meta_db):
 
 @app.get('/blobs/:hashalgo/:blobhash')
 def get_blob(hashalgo, blobhash, meta_db):
-    path = app.backend.get_blob_path(hashalgo, blobhash)
-    return static_file(*reversed(os.path.split(path)), mimetype='application/octet-stream')
+    blob = meta_db.query(MetadataBackend).filter_by(hash=blobhash).first()
+    if not blob:
+        raise HTTPError(404, "File metadata not found.")
+
+    try:
+        path = app.backend.get_blob_path(hashalgo, blobhash)
+    except Exception:
+        raise HTTPError(404, "File not found on disk.")
+
+    return static_file(*reversed(os.path.split(path)), mimetype=blob.mimetype)
 
 
 def main():
