@@ -16,9 +16,12 @@ import requests
 import poster.encode
 import logging
 import random
+import mimetypes
+from functools import partial
+
+
 log = logging.getLogger(__name__)
 
-from functools import partial
 
 def filehash(filename, hashalgo):
     h = hashlib.new(hashalgo)
@@ -54,25 +57,29 @@ def upload_file(hosts, filename, branch, hashalgo='sha1',
         log.info("Call _post_file - attempt #%d." % (n))
         if _post_file(**post_params):
             log.info("File %s was uploaded successfully at %s." %
-                        (filename, host))
+                     (filename, host))
             log.info("File %s is now accessible at %s/blobs/%s/%s" %
-                        (filename, host, hashalgo, blobhash))
+                     (filename, host, hashalgo, blobhash))
             break
         n += 1
 
     if n == attempts+1:
         log.info("Nr. of attempts exceeded. Uploading %s file failed!" %
-                    (filename))
+                 (filename))
 
 
 def _post_file(host, filename, branch, hashalgo, blobhash):
     url = urlparse.urljoin(host, '/blobs/{}/{}'.format(hashalgo, blobhash))
+
+    mimetype, encoding = mimetypes.guess_type(filename)
+    if not mimetype:
+        mimetype = 'application/octet-stream'
     datagen, headers = poster.encode.multipart_encode({
         'data': open(filename, 'rb'),
         'filename': filename,
         'filesize': os.path.getsize(filename),
         'branch': branch,
-        'mimetype': 'application/octet-stream',
+        'mimetype': mimetype,
     })
     req = urllib2.Request(url, datagen, headers)
     log.debug("Posting file to %s", url)
