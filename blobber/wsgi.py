@@ -2,22 +2,21 @@
 import tempfile
 import os
 import hashlib
-import json
 import logging
 import time
 
 from functools import partial
-
 from sqlalchemy import create_engine
 from bottle.ext import sqlalchemy as sqlalchemy_ext
-from bottle import Bottle, request, abort, response, static_file, \
-                    HTTPError
-from blobber.backend import BlobberBackend
+from bottle import Bottle, request, abort, response
 from sqlalchemy_schema import Base, MetadataBackend
+
+from amazons3_backend import upload_to_AmazonS3
 
 log = logging.getLogger(__name__)
 
 app = Bottle()
+
 
 def save_request_file(fileobj, hashalgo=None):
     """
@@ -57,7 +56,6 @@ def upload_blob(hashalgo, blobhash, meta_db):
             print 'invalid hash'
             abort(400, "Invalid hash")
 
-        app.backend.add_blob(hashalgo, blobhash, tmpfile)
         # determine some of the metadata
         meta_dict = {
             'blobhash': blobhash,
@@ -75,8 +73,12 @@ def upload_blob(hashalgo, blobhash, meta_db):
         # make sure no extra args get into database
         meta_dict.update({k: request.forms[k] for k in fields})
 
+        # add an entry to the metadata table
         entry = MetadataBackend(**meta_dict)
         meta_db.add(entry)
+
+        # add file on S3 machine
+        upload_to_AmazonS3(hashalgo, blobhash, tmpfile, meta_dict['mimetype'])
 
         response.status = 202
     finally:
@@ -84,26 +86,8 @@ def upload_blob(hashalgo, blobhash, meta_db):
         os.unlink(tmpfile)
 
 
-@app.get('/blobs/:hashalgo/:blobhash')
-def get_blob(hashalgo, blobhash, meta_db):
-    blob = meta_db.query(MetadataBackend).filter_by(hash=blobhash).first()
-    if not blob:
-        raise HTTPError(404, "File metadata not found.")
-
-    try:
-        path = app.backend.get_blob_path(hashalgo, blobhash)
-    except Exception:
-        raise HTTPError(404, "File not found on disk.")
-
-    return static_file(*reversed(os.path.split(path)), mimetype=blob.mimetype)
-
-
 def main():
-    from blobber.fs_plugin import FileBackend
-    from config import DIR, METADB_NAME
-    B = BlobberBackend({})
-    B.files = FileBackend({"DIR": DIR})
-    app.backend = B
+    from config import METADB_NAME
 
     cur_path = os.path.dirname(os.path.abspath(__file__))
     engine = create_engine("sqlite:////%s/%s" % (cur_path, METADB_NAME))
