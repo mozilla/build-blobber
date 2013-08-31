@@ -32,7 +32,7 @@ def filehash(filename, hashalgo):
 
 
 sha1sum = partial(filehash, hashalgo='sha1')
-
+s3_bucket_base_url = 'http://mozilla-releng-blobs.s3.amazonaws.com/blobs'
 
 def upload_file(hosts, filename, branch, hashalgo='sha1',
                 blobhash=None, attempts=10):
@@ -56,11 +56,19 @@ def upload_file(hosts, filename, branch, hashalgo='sha1',
         }
         log.info("Call _post_file - attempt #%d." % (n))
         if _post_file(**post_params):
-            log.info("File %s was uploaded successfully at %s." %
-                     (filename, host))
-            log.info("File %s is now accessible at %s/blobs/%s/%s" %
-                     (filename, host, hashalgo, blobhash))
+            # File posted successfully via blob server.
+            # Make sure the resource is available on amazon S3 bucket.
+            resource_url = '%s/%s/%s' % (s3_bucket_base_url, hashalgo, blobhash)
+            ret = requests.head(resource_url)
+            if ret.ok:
+                log.info("File %s uploaded successfully at %s/%s/%s" %
+                     (filename, s3_bucket_base_url, hashalgo, blobhash))
+            else:
+                log.info("File failed to be fetched from Amazon S3 bucket.")
             break
+        else:
+            log.info("Posting file via blob server failed. Trying again ...")
+
         n += 1
 
     if n == attempts+1:
@@ -82,7 +90,7 @@ def _post_file(host, filename, branch, hashalgo, blobhash):
         'mimetype': mimetype,
     })
     req = urllib2.Request(url, datagen, headers)
-    log.debug("Posting file to %s", url)
+    log.debug("Posting file to %s ...", url)
     try:
         urllib2.urlopen(req)
     except urllib2.URLError:
