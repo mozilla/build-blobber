@@ -12,6 +12,7 @@ from bottle import Bottle, request, abort, response
 from sqlalchemy_schema import Base, MetadataBackend
 
 from amazons3_backend import upload_to_AmazonS3
+import utils
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +41,18 @@ def save_request_file(fileobj, hashalgo=None):
         os.close(fd)
         os.unlink(tmpfile)
         raise
+
+
+def set_aws_request_headers(filename_path, guessed_mimetype):
+    mimetype = utils.get_blob_mimetype(filename_path, guessed_mimetype)
+    download_name = utils.slice_filename(filename_path)
+
+    headers = {
+        'Content-Type': mimetype,
+        'Content-Disposition': 'filename=\"%s\"' % (download_name),
+    }
+
+    return headers
 
 
 @app.post('/blobs/:hashalgo/:blobhash')
@@ -78,7 +91,9 @@ def upload_blob(hashalgo, blobhash, meta_db):
         meta_db.add(entry)
 
         # add file on S3 machine
-        upload_to_AmazonS3(hashalgo, blobhash, tmpfile, meta_dict['mimetype'])
+        headers = set_aws_request_headers(meta_dict['filename'],
+                                          meta_dict['mimetype'])
+        upload_to_AmazonS3(hashalgo, blobhash, tmpfile, headers)
 
         response.status = 202
     finally:
