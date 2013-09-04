@@ -43,14 +43,18 @@ def save_request_file(fileobj, hashalgo=None):
         raise
 
 
-def set_aws_request_headers(filename_path, guessed_mimetype):
-    mimetype = utils.get_blob_mimetype(filename_path, guessed_mimetype)
+def set_aws_request_headers(filename_path, default_mimetype):
+    mimetype = utils.get_blob_mimetype(filename_path, default_mimetype)
     download_name = utils.slice_filename(filename_path)
 
     headers = {
         'Content-Type': mimetype,
-        'Content-Disposition': 'filename=\"%s\"' % (download_name),
     }
+
+    if mimetype == default_mimetype:
+        headers['Content-Disposition'] = 'attachment; filename=\"%s\"' % (download_name)
+    else:
+        headers['Content-Disposition'] = 'inline; filename=\"%s\"' % (download_name)
 
     return headers
 

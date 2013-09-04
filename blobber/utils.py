@@ -26,11 +26,12 @@ def mkdiropen(filename, mode):
     return open(filename, mode)
 
 
-def get_blob_mimetype(filename, guessed_mimetype):
-    extension = filename.split('.')[-1]
-    mimetype = blob_mimetypes.get(extension, None)
-    if not mimetype:
-        return guessed_mimetype
+def get_blob_mimetype(filename, default_mimetype):
+    try:
+        extension = filename.split('.')[-1].lower()
+        mimetype = blob_mimetypes[extension]
+    except Exception:
+        return default_mimetype
     return mimetype
 
 
