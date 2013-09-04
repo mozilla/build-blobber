@@ -16,7 +16,6 @@ import requests
 import poster.encode
 import logging
 import random
-import mimetypes
 from functools import partial
 
 
@@ -33,6 +32,7 @@ def filehash(filename, hashalgo):
 
 sha1sum = partial(filehash, hashalgo='sha1')
 s3_bucket_base_url = 'http://mozilla-releng-blobs.s3.amazonaws.com/blobs'
+
 
 def upload_file(hosts, filename, branch, hashalgo='sha1',
                 blobhash=None, attempts=10):
@@ -79,15 +79,12 @@ def upload_file(hosts, filename, branch, hashalgo='sha1',
 def _post_file(host, filename, branch, hashalgo, blobhash):
     url = urlparse.urljoin(host, '/blobs/{}/{}'.format(hashalgo, blobhash))
 
-    mimetype, encoding = mimetypes.guess_type(filename)
-    if not mimetype:
-        mimetype = 'application/octet-stream'
     datagen, headers = poster.encode.multipart_encode({
         'data': open(filename, 'rb'),
         'filename': filename,
         'filesize': os.path.getsize(filename),
         'branch': branch,
-        'mimetype': mimetype,
+        'mimetype': 'application/octet-stream',
     })
     req = urllib2.Request(url, datagen, headers)
     log.debug("Posting file to %s ...", url)
