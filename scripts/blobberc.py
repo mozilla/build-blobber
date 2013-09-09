@@ -30,11 +30,11 @@ def filehash(filename, hashalgo):
     return h.hexdigest()
 
 
-sha1sum = partial(filehash, hashalgo='sha1')
+sha512sum = partial(filehash, hashalgo='sha512')
 s3_bucket_base_url = 'http://mozilla-releng-blobs.s3.amazonaws.com/blobs'
 
 
-def upload_file(hosts, filename, branch, hashalgo='sha1',
+def upload_file(hosts, filename, branch, hashalgo='sha512',
                 blobhash=None, attempts=10):
 
     if blobhash is None:
@@ -98,7 +98,7 @@ def _post_file(host, filename, branch, hashalgo, blobhash):
     return True
 
 
-def upload_dir(hosts, dirname, branch, hashalgo='sha1'):
+def upload_dir(hosts, dirname, branch, hashalgo='sha512'):
     log.info("Open directory for files ...")
     dir_files = [f for f in os.listdir(dirname)
                  if os.path.isfile(os.path.join(dirname, f))]
