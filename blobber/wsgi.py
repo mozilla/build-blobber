@@ -5,14 +5,10 @@ import hashlib
 import logging
 import time
 
-from functools import partial
-from sqlalchemy import create_engine
-from bottle.ext import sqlalchemy as sqlalchemy_ext
-from bottle import Bottle, request, abort, response
-from sqlalchemy_schema import Base, MetadataBackend
-
-from amazons3_backend import upload_to_AmazonS3
 import utils
+from functools import partial
+from bottle import Bottle, request, abort, response
+from amazons3_backend import upload_to_AmazonS3
 
 log = logging.getLogger(__name__)
 
@@ -60,7 +56,7 @@ def set_aws_request_headers(filename_path, default_mimetype):
 
 
 @app.post('/blobs/:hashalgo/:blobhash')
-def upload_blob(hashalgo, blobhash, meta_db):
+def upload_blob(hashalgo, blobhash):
     #TODO: limit to specific IP ranges
     data = request.files.data
     if not data.file:
@@ -73,31 +69,36 @@ def upload_blob(hashalgo, blobhash, meta_db):
             print 'invalid hash'
             abort(400, "Invalid hash")
 
-        # determine some of the metadata
+        # Prepare metadata along with the actual data file
+        # Some is server-side determined, some is taken from request
         meta_dict = {
-            'blobhash': blobhash,
             'upload_time': int(time.time()),
             'upload_ip': request.remote_addr
         }
-
-        # the rest of the metadata is taken from request
         fields = ('filename', 'filesize', 'branch', 'mimetype')
         for field in fields:
             if field not in request.forms:
                 print '%s missing' % field
                 abort(400, '%s missing' % field)
 
-        # make sure no extra args get into database
+        # make sure to drop other fields
         meta_dict.update({k: request.forms[k] for k in fields})
+        # make sure metadata total size does not exceed limit
+        from config import METADATA_SIZE_LIMIT
+        meta_size = sum([len(str(k)) + len(str(v))
+                         for k,v in meta_dict.items()])
+        if meta_size > METADATA_SIZE_LIMIT:
+            print 'metadata limit exceeded'
+            abort(400, 'Metadata exceeds limits')
 
-        # add an entry to the metadata table
-        entry = MetadataBackend(**meta_dict)
-        meta_db.add(entry)
-
-        # add file on S3 machine
+        # add file on S3 machine along with its metadata
         headers = set_aws_request_headers(meta_dict['filename'],
                                           meta_dict['mimetype'])
-        upload_to_AmazonS3(hashalgo, blobhash, tmpfile, headers)
+        upload_to_AmazonS3(hashalgo,
+                           blobhash,
+                           tmpfile,
+                           headers,
+                           meta_dict)
 
         response.status = 202
     finally:
@@ -106,21 +107,6 @@ def upload_blob(hashalgo, blobhash, meta_db):
 
 
 def main():
-    from config import METADB_NAME
-
-    cur_path = os.path.dirname(os.path.abspath(__file__))
-    engine = create_engine("sqlite:////%s/%s" % (cur_path, METADB_NAME))
-
-    plugin = sqlalchemy_ext.Plugin(
-        engine,
-        Base.metadata,
-        keyword="meta_db",
-        create=True,
-        commit=True,
-        use_kwargs=False,
-    )
-    app.install(plugin)
-
     app.run(host='0.0.0.0', port=8080, debug=True, reloader=True)
 
 if __name__ == '__main__':

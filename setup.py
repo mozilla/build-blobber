@@ -9,6 +9,5 @@ setup(name="blobber",
                         "sh", "python-magic",
                         "docopt", "poster", "nose",
                         "WebTest", "Werkzeug",
-                        "SQLAlchemy", "bottle-sqlalchemy",
                         "argparse", "wsgiref", "boto"],
       )

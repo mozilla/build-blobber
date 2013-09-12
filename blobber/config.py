@@ -1,5 +1,7 @@
-METADB_NAME = "metadata.db"
 S3_BUCKET = "mozilla-releng-blobs"
+
+# actual size limit is 2KB
+METADATA_SIZE_LIMIT = 1950
 
 blob_mimetypes = {
     'txt': 'text/plain',
