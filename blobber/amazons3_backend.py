@@ -8,7 +8,7 @@ def upload_to_AmazonS3(hashalgo, blobhash, data_file, headers, metadata):
         conn = S3Connection()
         bucket = conn.get_bucket(S3_BUCKET)
 
-        _key = "blobs/%s/%s" % (hashalgo, blobhash)
+        _key = "blobs/%s/%s/%s" % (metadata['branch'], hashalgo, blobhash)
         key = bucket.new_key(_key)
 
         key.update_metadata(metadata)

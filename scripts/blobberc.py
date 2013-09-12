@@ -58,11 +58,11 @@ def upload_file(hosts, filename, branch, hashalgo='sha512',
         if _post_file(**post_params):
             # File posted successfully via blob server.
             # Make sure the resource is available on amazon S3 bucket.
-            resource_url = '%s/%s/%s' % (s3_bucket_base_url, hashalgo, blobhash)
+            resource_url = '%s/%s/%s/%s' % (s3_bucket_base_url, branch,
+                                            hashalgo, blobhash)
             ret = requests.head(resource_url)
             if ret.ok:
-                log.info("Uploaded %s to %s/%s/%s" %
-                     (filename, s3_bucket_base_url, hashalgo, blobhash))
+                log.info("Uploaded %s to %s" % (filename, resource_url))
             else:
                 log.warning("Uploading to Amazon S3 failed.")
             break
