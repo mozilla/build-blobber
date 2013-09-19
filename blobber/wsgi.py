@@ -57,7 +57,6 @@ def set_aws_request_headers(filename_path, default_mimetype):
 
 @app.post('/blobs/:hashalgo/:blobhash')
 def upload_blob(hashalgo, blobhash):
-    #TODO: limit to specific IP ranges
     data = request.files.data
     if not data.file:
         print 'miss uploaded file'
@@ -94,6 +93,9 @@ def upload_blob(hashalgo, blobhash):
         # add file on S3 machine along with its metadata
         headers = set_aws_request_headers(meta_dict['filename'],
                                           meta_dict['mimetype'])
+        # update metadata mimetype should it lie in the whitelist
+        meta_dict['mimetype'] = headers['Content-Type']
+
         upload_to_AmazonS3(hashalgo,
                            blobhash,
                            tmpfile,

@@ -5,9 +5,6 @@ from contextlib import contextmanager
 
 from config import blob_mimetypes
 
-WINDOWS = (sys.platform.startswith("win") or
-          sys.platform.startswith("cygwin"))
-
 
 @contextmanager
 def ignored(*exceptions):
@@ -26,17 +23,15 @@ def mkdiropen(filename, mode):
     return open(filename, mode)
 
 
+# TODO: TO-REVIEW
 def get_blob_mimetype(filename, default_mimetype):
-    try:
-        extension = filename.split('.')[-1].lower()
-        mimetype = blob_mimetypes[extension]
-    except Exception:
-        return default_mimetype
+    extension = filename.split('.')[-1].lower()
+    mimetype = blob_mimetypes.get(extension, default_mimetype)
     return mimetype
 
 
-def slice_filename(string):
-    if WINDOWS:
-        return string.split('\\')[-1]
-    else:
-        return string.split('/')[-1]
+# TODO: TO-REVIEW
+def slice_filename(filename_path):
+    # filename_path can be any platform-based (OSX, Win, Linux)
+    filename_path = os.path.normpath(filename_path)
+    return filename_path.split('\\')[-1].split('/')[-1]
