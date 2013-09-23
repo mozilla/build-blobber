@@ -9,6 +9,7 @@ import utils
 from functools import partial
 from bottle import Bottle, request, abort, response
 from amazons3_backend import upload_to_AmazonS3
+from config import METADATA_SIZE_LIMIT, FILE_SIZE_LIMIT
 
 log = logging.getLogger(__name__)
 
@@ -39,18 +40,17 @@ def save_request_file(fileobj, hashalgo=None):
         raise
 
 
-def set_aws_request_headers(filename_path, default_mimetype):
-    mimetype = utils.get_blob_mimetype(filename_path, default_mimetype)
-    download_name = utils.slice_filename(filename_path)
+def set_aws_request_headers(filename, default_mimetype):
+    mimetype = utils.get_blob_mimetype(filename, default_mimetype)
 
     headers = {
         'Content-Type': mimetype,
     }
 
     if mimetype == default_mimetype:
-        headers['Content-Disposition'] = 'attachment; filename=\"%s\"' % (download_name)
+        headers['Content-Disposition'] = 'attachment; filename=\"%s\"' % (filename)
     else:
-        headers['Content-Disposition'] = 'inline; filename=\"%s\"' % (download_name)
+        headers['Content-Disposition'] = 'inline; filename=\"%s\"' % (filename)
 
     return headers
 
@@ -59,41 +59,49 @@ def set_aws_request_headers(filename_path, default_mimetype):
 def upload_blob(hashalgo, blobhash):
     data = request.files.data
     if not data.file:
-        print 'miss uploaded file'
+        print 'File upload missed.'
         abort(400, "Missing uploaded file")
 
     tmpfile, _hsh = save_request_file(data.file, hashalgo)
     try:
         if _hsh != blobhash:
-            print 'invalid hash'
+            print 'Invalid hash for the file attached.'
             abort(400, "Invalid hash")
-
         # Prepare metadata along with the actual data file
         # Some is server-side determined, some is taken from request
         meta_dict = {
             'upload_time': int(time.time()),
-            'upload_ip': request.remote_addr
+            'upload_ip': request.remote_addr,
+            'filesize': os.path.getsize(tmpfile),
         }
-        fields = ('filename', 'filesize', 'branch', 'mimetype')
+
+        if meta_dict['filesize'] > FILE_SIZE_LIMIT:
+            print 'File size exceeds size limit.'
+            abort(400, 'File size limit exceeded!')
+
+        fields = ('filename', 'branch', 'mimetype')
         for field in fields:
             if field not in request.forms:
-                print '%s missing' % field
+                print 'Missing %s ' % field
                 abort(400, '%s missing' % field)
 
-        # make sure to drop other fields
+        filename = utils.slice_filename(request.forms['filename'])
+        if not utils.filetype_allowed(filename):
+            print 'File type not allowed on server'
+            abort(400, 'File type not allowed  to be uploaded')
+
+        # make sure to drop other possible metadata fields
         meta_dict.update({k: request.forms[k] for k in fields})
         # make sure metadata total size does not exceed limit
-        from config import METADATA_SIZE_LIMIT
         meta_size = sum([len(str(k)) + len(str(v))
                          for k,v in meta_dict.items()])
         if meta_size > METADATA_SIZE_LIMIT:
-            print 'metadata limit exceeded'
+            print 'Metadata limit exceeded'
             abort(400, 'Metadata exceeds limits')
 
-        # add file on S3 machine along with its metadata
-        headers = set_aws_request_headers(meta_dict['filename'],
-                                          meta_dict['mimetype'])
-        # update metadata mimetype should it lie in the whitelist
+        # add/update file on S3 machine along with its metadata
+        headers = set_aws_request_headers(filename, meta_dict['mimetype'])
+        # update metadata should it contain a renderable mimetype
         meta_dict['mimetype'] = headers['Content-Type']
 
         upload_to_AmazonS3(hashalgo,

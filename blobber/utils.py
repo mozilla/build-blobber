@@ -3,7 +3,7 @@ import sys
 
 from contextlib import contextmanager
 
-from config import blob_mimetypes
+from config import blob_mimetypes, filetype_whitelist
 
 
 @contextmanager
@@ -35,3 +35,12 @@ def slice_filename(filename_path):
     # filename_path can be any platform-based (OSX, Win, Linux)
     filename_path = os.path.normpath(filename_path)
     return filename_path.split('\\')[-1].split('/')[-1]
+
+
+# TODO: TO-REVIEW
+def filetype_allowed(filename):
+    extension = filename.split('.')[-1].lower()
+    if extension in filetype_whitelist:
+        return True
+    return False
+
