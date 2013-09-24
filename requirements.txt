@@ -1,3 +1,4 @@
+IPy==0.81
 Werkzeug==0.9.4
 argparse==1.2.1
 boto==2.13.3

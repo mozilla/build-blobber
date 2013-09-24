@@ -1,9 +1,9 @@
 import os
 import sys
-
 from contextlib import contextmanager
+from IPy import IP
 
-from config import blob_mimetypes, filetype_whitelist
+from config import blob_mimetypes, security_config
 
 
 @contextmanager
@@ -40,7 +40,17 @@ def slice_filename(filename_path):
 # TODO: TO-REVIEW
 def filetype_allowed(filename):
     extension = filename.split('.')[-1].lower()
+    filetype_whitelist = security_config.get('allowed_filetypes', None)
     if extension in filetype_whitelist:
         return True
     return False
 
+# TODO: TO-REVIEW
+def ip_allowed(remote_addr):
+    allowed_ips = [IP(i) for i in
+                    security_config.get('allowed_ips', None).split(',') if i]
+    ip = IP(remote_addr)
+    for i in allowed_ips:
+        if ip in i:
+            return True
+    return False

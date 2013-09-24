@@ -9,7 +9,8 @@ import utils
 from functools import partial
 from bottle import Bottle, request, abort, response
 from amazons3_backend import upload_to_AmazonS3
-from config import METADATA_SIZE_LIMIT, FILE_SIZE_LIMIT
+from config import METADATA_SIZE_LIMIT, FILE_SIZE_LIMIT, \
+    security_config
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +58,11 @@ def set_aws_request_headers(filename, default_mimetype):
 
 @app.post('/blobs/:hashalgo/:blobhash')
 def upload_blob(hashalgo, blobhash):
+    client_ip = request.remote_addr
+    if not client_ip or not utils.ip_allowed(client_ip):
+        print 'Client IP not allowed to make the call.'
+        abort(400, 'Client IP not allowed to make the call.')
+
     data = request.files.data
     if not data.file:
         print 'File upload missed.'

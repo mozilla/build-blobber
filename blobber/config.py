@@ -6,6 +6,20 @@ METADATA_SIZE_LIMIT = 1950
 # file size limit current set to 5MB
 FILE_SIZE_LIMIT = 5000000
 
+security_config = {
+    # subnets as comma separated string
+    'allowed_ips': '',
+    'allowed_filetypes': [
+        'dmp',
+        'txt',
+        'log',
+        'gif',
+        'jpg', 'jpeg',
+        'png',
+    ],
+}
+
+# files to be Content-Type specific instead of 'downloadable'
 blob_mimetypes = {
     'txt': 'text/plain',
     'log': 'text/plain',
@@ -14,12 +28,3 @@ blob_mimetypes = {
     'jpeg' : 'image/jpg',
     'jpg' : 'image/jpg',
 }
-
-filetype_whitelist = [
-    'dmp',
-    'txt',
-    'log',
-    'gif',
-    'jpg', 'jpeg',
-    'png',
-]
