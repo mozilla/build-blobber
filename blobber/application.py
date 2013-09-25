@@ -7,7 +7,7 @@ import time
 
 import utils
 from functools import partial
-from bottle import Bottle, request, abort, response
+from bottle import Bottle, request, abort, response, HTTPError
 from amazons3_backend import upload_to_AmazonS3
 from config import METADATA_SIZE_LIMIT, FILE_SIZE_LIMIT, \
     security_config
@@ -60,19 +60,19 @@ def set_aws_request_headers(filename, default_mimetype):
 def upload_blob(hashalgo, blobhash):
     client_ip = request.remote_addr
     if not client_ip or not utils.ip_allowed(client_ip):
-        print 'Client IP not allowed to make the call.'
-        abort(400, 'Client IP not allowed to make the call.')
+        raise HTTPError(status=403,
+                        x_blobber_msg='Client IP not allowed to call server!')
 
     data = request.files.data
     if not data.file:
-        print 'File upload missed.'
-        abort(400, "Missing uploaded file")
+        raise HTTPError(status=403,
+                        x_blobber_msg='Missing uploaded file!')
 
     tmpfile, _hsh = save_request_file(data.file, hashalgo)
     try:
         if _hsh != blobhash:
-            print 'Invalid hash for the file attached.'
-            abort(400, "Invalid hash")
+            raise HTTPError(status=403,
+                            x_blobber_msg='Invalid hash!')
         # Prepare metadata along with the actual data file
         # Some is server-side determined, some is taken from request
         meta_dict = {
@@ -82,19 +82,19 @@ def upload_blob(hashalgo, blobhash):
         }
 
         if meta_dict['filesize'] > FILE_SIZE_LIMIT:
-            print 'File size exceeds size limit.'
-            abort(400, 'File size limit exceeded!')
+            raise HTTPError(status=403,
+                            x_blobber_msg='File size exceeds size limit!')
 
         fields = ('filename', 'branch', 'mimetype')
         for field in fields:
             if field not in request.forms:
-                print 'Missing %s ' % field
-                abort(400, '%s missing' % field)
+                raise HTTPError(status=403,
+                                x_blobber_msg='Metadata %s field missing!' % (field))
 
         filename = utils.slice_filename(request.forms['filename'])
         if not utils.filetype_allowed(filename):
-            print 'File type not allowed on server'
-            abort(400, 'File type not allowed  to be uploaded')
+            raise HTTPError(status=403,
+                            x_blobber_msg='File type not allowed on server!')
 
         # make sure to drop other possible metadata fields
         meta_dict.update({k: request.forms[k] for k in fields})
@@ -102,8 +102,8 @@ def upload_blob(hashalgo, blobhash):
         meta_size = sum([len(str(k)) + len(str(v))
                          for k,v in meta_dict.items()])
         if meta_size > METADATA_SIZE_LIMIT:
-            print 'Metadata limit exceeded'
-            abort(400, 'Metadata exceeds limits')
+            raise HTTPError(status=403,
+                            x_blobber_msg='Metadata limit exceeded!')
 
         # add/update file on S3 machine along with its metadata
         headers = set_aws_request_headers(filename, meta_dict['mimetype'])
@@ -118,7 +118,6 @@ def upload_blob(hashalgo, blobhash):
 
         response.status = 202
     finally:
-        print tmpfile
         os.unlink(tmpfile)
 
 
