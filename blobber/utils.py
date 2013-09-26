@@ -20,7 +20,11 @@ def mkdiropen(filename, mode):
 def login_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        user, passwd = parse_auth(request.headers.get('Authorization', ''))
+        auth = request.headers.get('Authorization')
+        if not auth:
+            raise HTTPError(status=401,
+                            x_blobber_msg='Authentication required!')
+        user, passwd = parse_auth(auth)
         if (user, passwd) != (USER, PASSWORD):
             raise HTTPError(status=403,
                             x_blobber_msg='Authentication failed!')
