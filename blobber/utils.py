@@ -4,8 +4,7 @@ from IPy import IP
 from bottle import parse_auth, request, HTTPError
 from functools import wraps
 
-from .config import blob_mimetypes, security_config, \
-            USER, PASSWORD
+from .config import blob_mimetypes, security_config
 
 
 def mkdiropen(filename, mode):
@@ -24,7 +23,14 @@ def login_required(fn):
         if not auth:
             raise HTTPError(status=401,
                             x_blobber_msg='Authentication required!')
-        user, passwd = parse_auth(auth)
+        req_user, req_passwd = parse_auth(auth)
+
+        USER = os.environ.get("CLIENT_USERNAME")
+        PASSWORD = os.environ.get("CLIENT_PASSWORD")
+        if not USER or not PASSWORD:
+            raise HTTPError(status=500,
+                            x_blobber_msg='Client credentials unset on server!')
+
         if (user, passwd) != (USER, PASSWORD):
             raise HTTPError(status=403,
                             x_blobber_msg='Authentication failed!')
