@@ -1,3 +1,6 @@
+USER = 'SMPATQNPP71YBNPATAER'
+PASSWORD = 'CB52CAT6PQ1GBFDNPK9A'
+
 S3_BUCKET = "mozilla-releng-blobs"
 
 # actual size limit is 2KB
@@ -8,7 +11,9 @@ FILE_SIZE_LIMIT = 5000000
 
 security_config = {
     # subnets as comma separated string
-    'allowed_ips': '',
+    'allowed_ips': [
+        '0.0.0.0/0',
+    ],
     'allowed_filetypes': [
         'dmp',
         'txt',

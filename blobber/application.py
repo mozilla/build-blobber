@@ -57,6 +57,7 @@ def set_aws_request_headers(filename, default_mimetype):
 
 
 @app.post('/blobs/:hashalgo/:blobhash')
+@utils.login_required
 def upload_blob(hashalgo, blobhash):
     client_ip = request.remote_addr
     if not client_ip or not utils.ip_allowed(client_ip):

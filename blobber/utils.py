@@ -2,8 +2,10 @@ import os
 import sys
 from contextlib import contextmanager
 from IPy import IP
-
-from config import blob_mimetypes, security_config
+from bottle import parse_auth, request, HTTPError
+from functools import wraps
+from config import blob_mimetypes, security_config, \
+            USER, PASSWORD
 
 
 @contextmanager
@@ -21,6 +23,18 @@ def mkdiropen(filename, mode):
             os.makedirs(d)
 
     return open(filename, mode)
+
+
+def login_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        user, passwd = parse_auth(request.headers.get('Authorization', ''))
+        if (user, passwd) == (USER, PASSWORD):
+            return fn(**kwargs)
+        else:
+            raise HTTPError(status=403,
+                            x_blobber_msg='Authentication failed!')
+    return wrapper
 
 
 # TODO: TO-REVIEW
@@ -45,10 +59,10 @@ def filetype_allowed(filename):
         return True
     return False
 
+
 # TODO: TO-REVIEW
 def ip_allowed(remote_addr):
-    allowed_ips = [IP(i) for i in
-                    security_config.get('allowed_ips', None).split(',') if i]
+    allowed_ips = [IP(i) for i in security_config.get('allowed_ips', None)]
     ip = IP(remote_addr)
     for i in allowed_ips:
         if ip in i:
