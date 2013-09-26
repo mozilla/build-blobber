@@ -4,12 +4,12 @@ import os
 import hashlib
 import logging
 import time
-
-import utils
 from functools import partial
 from bottle import Bottle, request, abort, response, HTTPError
-from amazons3_backend import upload_to_AmazonS3
-from config import METADATA_SIZE_LIMIT, FILE_SIZE_LIMIT, \
+
+import blobber.utils as utils
+from blobber.amazons3_backend import upload_to_AmazonS3
+from blobber.config import METADATA_SIZE_LIMIT, FILE_SIZE_LIMIT, \
     security_config
 
 log = logging.getLogger(__name__)
@@ -113,6 +113,8 @@ def upload_blob(hashalgo, blobhash):
     finally:
         os.unlink(tmpfile)
 
+
+application = app
 
 def main():
     # TODO: debug should be False in production

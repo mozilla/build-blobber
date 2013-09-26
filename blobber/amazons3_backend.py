@@ -1,6 +1,6 @@
 from boto.s3.connection import S3Connection
 
-from config import S3_BUCKET
+from .config import S3_BUCKET
 
 
 def upload_to_AmazonS3(hashalgo, blobhash, data_file, headers, metadata):

@@ -1,19 +1,11 @@
 import os
 import sys
-from contextlib import contextmanager
 from IPy import IP
 from bottle import parse_auth, request, HTTPError
 from functools import wraps
-from config import blob_mimetypes, security_config, \
+
+from .config import blob_mimetypes, security_config, \
             USER, PASSWORD
-
-
-@contextmanager
-def ignored(*exceptions):
-    try:
-        yield
-    except exceptions:
-        pass
 
 
 def mkdiropen(filename, mode):
