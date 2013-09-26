@@ -29,11 +29,35 @@ def login_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         user, passwd = parse_auth(request.headers.get('Authorization', ''))
-        if (user, passwd) == (USER, PASSWORD):
-            return fn(**kwargs)
-        else:
+        if (user, passwd) != (USER, PASSWORD):
             raise HTTPError(status=403,
                             x_blobber_msg='Authentication failed!')
+        return fn(**kwargs)
+
+    return wrapper
+
+
+def client_allowance(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        client_ip = request.remote_addr
+        if not client_ip or not ip_allowed(client_ip):
+            raise HTTPError(status=403,
+                        x_blobber_msg='Client IP not allowed to call server!')
+        return fn(**kwargs)
+
+    return wrapper
+
+
+def has_attachment(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        data = request.files.data
+        if not data.file:
+            raise HTTPError(status=403,
+                            x_blobber_msg='Missing uploaded file!')
+        return fn(**kwargs)
+
     return wrapper
 
 

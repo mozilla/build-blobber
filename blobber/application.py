@@ -58,18 +58,10 @@ def set_aws_request_headers(filename, default_mimetype):
 
 @app.post('/blobs/:hashalgo/:blobhash')
 @utils.login_required
+@utils.client_allowance
+@utils.has_attachment
 def upload_blob(hashalgo, blobhash):
-    client_ip = request.remote_addr
-    if not client_ip or not utils.ip_allowed(client_ip):
-        raise HTTPError(status=403,
-                        x_blobber_msg='Client IP not allowed to call server!')
-
-    data = request.files.data
-    if not data.file:
-        raise HTTPError(status=403,
-                        x_blobber_msg='Missing uploaded file!')
-
-    tmpfile, _hsh = save_request_file(data.file, hashalgo)
+    tmpfile, _hsh = save_request_file(request.files.data.file, hashalgo)
     try:
         if _hsh != blobhash:
             raise HTTPError(status=403,
@@ -101,7 +93,7 @@ def upload_blob(hashalgo, blobhash):
         meta_dict.update({k: request.forms[k] for k in fields})
         # make sure metadata total size does not exceed limit
         meta_size = sum([len(str(k)) + len(str(v))
-                         for k,v in meta_dict.items()])
+                         for k, v in meta_dict.items()])
         if meta_size > METADATA_SIZE_LIMIT:
             raise HTTPError(status=403,
                             x_blobber_msg='Metadata limit exceeded!')
@@ -123,7 +115,8 @@ def upload_blob(hashalgo, blobhash):
 
 
 def main():
-    app.run(host='0.0.0.0', port=8080, debug=True, reloader=True)
+    # TODO: debug should be False in production
+    app.run(host='0.0.0.0', port=8080, debug=False, reloader=True)
 
 if __name__ == '__main__':
     main()
