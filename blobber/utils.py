@@ -31,7 +31,7 @@ def login_required(fn):
             raise HTTPError(status=500,
                             x_blobber_msg='Client credentials unset on server!')
 
-        if (user, passwd) != (USER, PASSWORD):
+        if (req_user, req_passwd) != (USER, PASSWORD):
             raise HTTPError(status=403,
                             x_blobber_msg='Authentication failed!')
         return fn(**kwargs)
@@ -54,7 +54,7 @@ def client_allowance(fn):
 def has_attachment(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        data = request.files.data
+        data = request.files.blob
         if not data.file:
             raise HTTPError(status=403,
                             x_blobber_msg='Missing uploaded file!')

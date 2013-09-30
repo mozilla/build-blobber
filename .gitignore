@@ -1,3 +1,4 @@
 *.pyc
 sandbox/*
 *.egg-info/*
+.elasticbeanstalk/

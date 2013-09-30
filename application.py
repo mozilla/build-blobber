@@ -61,7 +61,7 @@ def set_aws_request_headers(filename, default_mimetype):
 @utils.client_allowance
 @utils.has_attachment
 def upload_blob(hashalgo, blobhash):
-    tmpfile, _hsh = save_request_file(request.files.data.file, hashalgo)
+    tmpfile, _hsh = save_request_file(request.files.blob.file, hashalgo)
     try:
         if _hsh != blobhash:
             raise HTTPError(status=403,
