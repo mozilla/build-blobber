@@ -72,19 +72,20 @@ def upload_blob(hashalgo, blobhash):
             'upload_time': int(time.time()),
             'upload_ip': request.remote_addr,
             'filesize': os.path.getsize(tmpfile),
+            'filename': request.files.blob.filename,
         }
 
         if meta_dict['filesize'] > FILE_SIZE_LIMIT:
             raise HTTPError(status=403,
                             x_blobber_msg='File size exceeds size limit!')
 
-        fields = ('filename', 'branch', 'mimetype')
+        fields = ('branch', 'mimetype')
         for field in fields:
             if field not in request.forms:
                 raise HTTPError(status=403,
                                 x_blobber_msg='Metadata %s field missing!' % (field))
 
-        filename = utils.slice_filename(request.forms['filename'])
+        filename = request.files.blob.filename
         if not utils.filetype_allowed(filename):
             raise HTTPError(status=403,
                             x_blobber_msg='File type not allowed on server!')

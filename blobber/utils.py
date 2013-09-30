@@ -71,13 +71,6 @@ def get_blob_mimetype(filename, default_mimetype):
 
 
 # TODO: TO-REVIEW
-def slice_filename(filename_path):
-    # filename_path can be any platform-based (OSX, Win, Linux)
-    filename_path = os.path.normpath(filename_path)
-    return filename_path.split('\\')[-1].split('/')[-1]
-
-
-# TODO: TO-REVIEW
 def filetype_allowed(filename):
     extension = filename.split('.')[-1].lower()
     filetype_whitelist = security_config.get('allowed_filetypes', None)
