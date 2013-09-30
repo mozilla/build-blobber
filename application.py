@@ -46,12 +46,8 @@ def set_aws_request_headers(filename, default_mimetype):
 
     headers = {
         'Content-Type': mimetype,
+        'Content-Disposition' : 'inline; filename=\"%s\"' % (filename),
     }
-
-    if mimetype == default_mimetype:
-        headers['Content-Disposition'] = 'attachment; filename=\"%s\"' % (filename)
-    else:
-        headers['Content-Disposition'] = 'inline; filename=\"%s\"' % (filename)
 
     return headers
 
@@ -79,7 +75,7 @@ def upload_blob(hashalgo, blobhash):
             raise HTTPError(status=403,
                             x_blobber_msg='File size exceeds size limit!')
 
-        fields = ('branch', 'mimetype')
+        fields = ('branch',)
         for field in fields:
             if field not in request.forms:
                 raise HTTPError(status=403,
@@ -92,6 +88,11 @@ def upload_blob(hashalgo, blobhash):
 
         # make sure to drop other possible metadata fields
         meta_dict.update({k: request.forms[k] for k in fields})
+
+        headers = set_aws_request_headers(filename, request.files.blob.type)
+        # update metadata should it contain a renderable mimetype
+        meta_dict['mimetype'] = headers['Content-Type']
+
         # make sure metadata total size does not exceed limit
         meta_size = sum([len(str(k)) + len(str(v))
                          for k, v in meta_dict.items()])
@@ -100,10 +101,6 @@ def upload_blob(hashalgo, blobhash):
                             x_blobber_msg='Metadata limit exceeded!')
 
         # add/update file on S3 machine along with its metadata
-        headers = set_aws_request_headers(filename, meta_dict['mimetype'])
-        # update metadata should it contain a renderable mimetype
-        meta_dict['mimetype'] = headers['Content-Type']
-
         upload_to_AmazonS3(hashalgo,
                            blobhash,
                            tmpfile,
