@@ -14,9 +14,9 @@ def upload_to_AmazonS3(hashalgo, blobhash, data_file, headers, metadata):
     * if file doesn't exist => upload it.
     """
     # make sure the bucket name is set within the environment
-    BUCKET = os.environ.get(S3_UPLOAD_BUCKET)
+    BUCKET = os.environ.get("S3_UPLOAD_BUCKET")
     if not BUCKET:
-        return
+        raise ValueError("S3_UPLOAD_BUCKET env var unset!")
 
     # open a connection and get the bucket
     conn = S3Connection()
