@@ -1,5 +1,3 @@
-S3_BUCKET = "mozilla-releng-blobs"
-
 # actual size limit is 2KB
 METADATA_SIZE_LIMIT = 1950
 

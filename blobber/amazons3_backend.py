@@ -1,6 +1,5 @@
+import os
 from boto.s3.connection import S3Connection
-
-from .config import S3_BUCKET
 
 
 def upload_to_AmazonS3(hashalgo, blobhash, data_file, headers, metadata):
@@ -14,9 +13,14 @@ def upload_to_AmazonS3(hashalgo, blobhash, data_file, headers, metadata):
         old one, thus resetting creation_date.
     * if file doesn't exist => upload it.
     """
+    # make sure the bucket name is set within the environment
+    BUCKET = os.environ.get(S3_UPLOAD_BUCKET)
+    if not BUCKET:
+        return
+
     # open a connection and get the bucket
     conn = S3Connection()
-    bucket = conn.get_bucket(S3_BUCKET)
+    bucket = conn.get_bucket(BUCKET)
 
     # get bucket corresponding key for the object
     _key = "blobs/%s/%s/%s" % (metadata['branch'], hashalgo, blobhash)
