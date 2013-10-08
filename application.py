@@ -101,12 +101,14 @@ def upload_blob(hashalgo, blobhash):
                             x_blobber_msg='Metadata limit exceeded!')
 
         # add/update file on S3 machine along with its metadata
-        upload_to_AmazonS3(hashalgo,
-                           blobhash,
-                           tmpfile,
-                           headers,
-                           meta_dict)
+        blob_url = upload_to_AmazonS3(hashalgo,
+                                      blobhash,
+                                      tmpfile,
+                                      headers,
+                                      meta_dict)
 
+        # return URL in reponse headers
+        response.set_header('x-blob-url', blob_url)
         response.status = 202
     finally:
         os.unlink(tmpfile)
