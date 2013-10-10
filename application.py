@@ -53,8 +53,8 @@ def set_aws_request_headers(filename, default_mimetype):
 
 
 @app.post('/blobs/:hashalgo/:blobhash')
-@utils.login_required
-@utils.client_allowance
+#@utils.login_required
+#@utils.client_allowance
 @utils.has_attachment
 def upload_blob(hashalgo, blobhash):
     tmpfile, _hsh = save_request_file(request.files.blob.file, hashalgo)
@@ -109,6 +109,7 @@ def upload_blob(hashalgo, blobhash):
 
         # return URL in reponse headers
         response.set_header('x-blob-url', blob_url)
+        response.set_header('x-blob-filename', filename)
         response.status = 202
     finally:
         os.unlink(tmpfile)
