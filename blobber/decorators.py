@@ -1,20 +1,9 @@
 import os
-import sys
 from IPy import IP
 from bottle import parse_auth, request, HTTPError
 from functools import wraps
 
-from .config import blob_mimetypes, security_config
-
-
-def mkdiropen(filename, mode):
-    d = os.path.dirname(filename)
-    if not os.path.exists(d):
-        with ignored(OSError):
-            os.makedirs(d)
-
-    return open(filename, mode)
-
+from .config import security_config
 
 def login_required(fn):
     @wraps(fn)
@@ -39,7 +28,7 @@ def login_required(fn):
     return wrapper
 
 
-def client_allowance(fn):
+def check_client_ip(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         client_ip = request.remote_addr
@@ -51,7 +40,7 @@ def client_allowance(fn):
     return wrapper
 
 
-def has_attachment(fn):
+def attach_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         data = request.files.blob
@@ -63,23 +52,6 @@ def has_attachment(fn):
     return wrapper
 
 
-# TODO: TO-REVIEW
-def get_blob_mimetype(filename, default_mimetype):
-    extension = filename.split('.')[-1].lower()
-    mimetype = blob_mimetypes.get(extension, default_mimetype)
-    return mimetype
-
-
-# TODO: TO-REVIEW
-def filetype_allowed(filename):
-    extension = filename.split('.')[-1].lower()
-    filetype_whitelist = security_config.get('allowed_filetypes', None)
-    if extension in filetype_whitelist:
-        return True
-    return False
-
-
-# TODO: TO-REVIEW
 def ip_allowed(remote_addr):
     allowed_ips = [IP(i) for i in security_config.get('allowed_ips', None)]
     ip = IP(remote_addr)

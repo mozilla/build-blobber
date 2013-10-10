@@ -13,6 +13,7 @@ def upload_to_AmazonS3(hashalgo, blobhash, data_file, headers, metadata):
         changes. We uload the file should the side effect fail, overwriting
         old one, thus resetting creation_date.
     * if file doesn't exist => upload it.
+
     """
     # make sure the bucket name is set within the environment
     BUCKET = os.environ.get("S3_UPLOAD_BUCKET")
