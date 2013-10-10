@@ -6,6 +6,12 @@ from functools import wraps
 from .config import security_config
 
 def login_required(fn):
+    """
+    Decorator to ensure client uses Basic Auth, secure HTTPs and has the
+    expected credentials. Should it fail in any of these, HttpError 401/403
+    error codes are returned
+
+    """
     @wraps(fn)
     def wrapper(*args, **kwargs):
         auth = request.headers.get('Authorization')
@@ -29,6 +35,11 @@ def login_required(fn):
 
 
 def check_client_ip(fn):
+    """
+    Decorator to ensure client IP is in the allowed range specified in
+    the config file. Should it fail, HttpError 403 is returned.
+
+    """
     @wraps(fn)
     def wrapper(*args, **kwargs):
         client_ip = request.remote_addr
@@ -41,6 +52,11 @@ def check_client_ip(fn):
 
 
 def attach_required(fn):
+    """
+    Decorator to ensure client sends a POST call that contains a file.
+    Should it fail, HttpError 403 is returned.
+
+    """
     @wraps(fn)
     def wrapper(*args, **kwargs):
         data = request.files.blob
@@ -53,6 +69,12 @@ def attach_required(fn):
 
 
 def ip_allowed(remote_addr):
+    """
+    Helper function for check_client_ip decorator. Runs client IP
+    against all allowed subnets specified in config file. Should it
+    fail to match any of them, False statement is returned.
+
+    """
     allowed_ips = [IP(i) for i in security_config.get('allowed_ips', None)]
     ip = IP(remote_addr)
     for i in allowed_ips:
