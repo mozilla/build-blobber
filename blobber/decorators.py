@@ -1,22 +1,17 @@
 import os
-import sys
 from IPy import IP
 from bottle import parse_auth, request, HTTPError
 from functools import wraps
 
-from .config import blob_mimetypes, security_config
-
-
-def mkdiropen(filename, mode):
-    d = os.path.dirname(filename)
-    if not os.path.exists(d):
-        with ignored(OSError):
-            os.makedirs(d)
-
-    return open(filename, mode)
-
+from .config import security_config
 
 def login_required(fn):
+    """
+    Decorator to ensure client uses Basic Auth, secure HTTPs and has the
+    expected credentials. Should it fail in any of these, HttpError 401/403
+    error codes are returned
+
+    """
     @wraps(fn)
     def wrapper(*args, **kwargs):
         auth = request.headers.get('Authorization')
@@ -39,7 +34,12 @@ def login_required(fn):
     return wrapper
 
 
-def client_allowance(fn):
+def check_client_ip(fn):
+    """
+    Decorator to ensure client IP is in the allowed range specified in
+    the config file. Should it fail, HttpError 403 is returned.
+
+    """
     @wraps(fn)
     def wrapper(*args, **kwargs):
         client_ip = request.remote_addr
@@ -51,7 +51,12 @@ def client_allowance(fn):
     return wrapper
 
 
-def has_attachment(fn):
+def attach_required(fn):
+    """
+    Decorator to ensure client sends a POST call that contains a file.
+    Should it fail, HttpError 403 is returned.
+
+    """
     @wraps(fn)
     def wrapper(*args, **kwargs):
         data = request.files.blob
@@ -63,24 +68,13 @@ def has_attachment(fn):
     return wrapper
 
 
-# TODO: TO-REVIEW
-def get_blob_mimetype(filename, default_mimetype):
-    extension = filename.split('.')[-1].lower()
-    mimetype = blob_mimetypes.get(extension, default_mimetype)
-    return mimetype
-
-
-# TODO: TO-REVIEW
-def filetype_allowed(filename):
-    extension = filename.split('.')[-1].lower()
-    filetype_whitelist = security_config.get('allowed_filetypes', None)
-    if extension in filetype_whitelist:
-        return True
-    return False
-
-
-# TODO: TO-REVIEW
 def ip_allowed(remote_addr):
+    """
+    Helper function for check_client_ip decorator. Runs client IP
+    against all allowed subnets specified in config file. Should it
+    fail to match any of them, False statement is returned.
+
+    """
     allowed_ips = [IP(i) for i in security_config.get('allowed_ips', None)]
     ip = IP(remote_addr)
     for i in allowed_ips:

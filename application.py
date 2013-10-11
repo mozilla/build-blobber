@@ -1,16 +1,17 @@
 #!/usr/bin/env python
+
 import tempfile
 import os
 import hashlib
 import logging
 import time
 from functools import partial
-from bottle import Bottle, request, abort, response, HTTPError
+from bottle import Bottle, request, response, HTTPError
 
-import blobber.utils as utils
+from blobber import get_blob_mimetype, filetype_allowed
+from blobber.decorators import login_required, check_client_ip, attach_required
 from blobber.amazons3_backend import upload_to_AmazonS3
-from blobber.config import METADATA_SIZE_LIMIT, FILE_SIZE_LIMIT, \
-    security_config
+from blobber.config import METADATA_SIZE_LIMIT, FILE_SIZE_LIMIT
 
 log = logging.getLogger(__name__)
 
@@ -20,16 +21,14 @@ app = Bottle()
 def save_request_file(fileobj, hashalgo=None):
     """
     Saves uploaded file `fileobj` and returns its filename
+
     """
     fd, tmpfile = tempfile.mkstemp()
     h = None
     if hashalgo:
         h = hashlib.new(hashalgo)
-
     try:
-        nread = 0
         for block in iter(partial(fileobj.read, 1024 ** 2), ''):
-            nread += len(block)
             if h:
                 h.update(block)
             os.write(fd, block)
@@ -42,21 +41,31 @@ def save_request_file(fileobj, hashalgo=None):
 
 
 def set_aws_request_headers(filename, default_mimetype):
-    mimetype = utils.get_blob_mimetype(filename, default_mimetype)
+    """
+    Set headers for file to Amazon S3 storage use and return them
 
+    """
+    mimetype = get_blob_mimetype(filename, default_mimetype)
     headers = {
         'Content-Type': mimetype,
-        'Content-Disposition' : 'inline; filename=\"%s\"' % (filename),
+        'Content-Disposition' : 'inline; filename="%s"' % (filename),
     }
 
     return headers
 
 
 @app.post('/blobs/:hashalgo/:blobhash')
-@utils.login_required
-@utils.client_allowance
-@utils.has_attachment
+@check_client_ip
+@login_required
+@attach_required
 def upload_blob(hashalgo, blobhash):
+    """
+    Receives the file from client. Save a local temporary copy of the file to
+    make sure the hash is correct. Determines the metadata about the file and
+    further uploads it to Amazon S3 storage.
+    Returns #202 response on success, or different error code with accordingly
+    error message should any of them occur
+    """
     tmpfile, _hsh = save_request_file(request.files.blob.file, hashalgo)
     try:
         if _hsh != blobhash:
@@ -82,7 +91,7 @@ def upload_blob(hashalgo, blobhash):
                                 x_blobber_msg='Metadata %s field missing!' % (field))
 
         filename = request.files.blob.filename
-        if not utils.filetype_allowed(filename):
+        if not filetype_allowed(filename):
             raise HTTPError(status=403,
                             x_blobber_msg='File type not allowed on server!')
 
@@ -109,6 +118,7 @@ def upload_blob(hashalgo, blobhash):
 
         # return URL in reponse headers
         response.set_header('x-blob-url', blob_url)
+        response.set_header('x-blob-filename', filename)
         response.status = 202
     finally:
         os.unlink(tmpfile)
@@ -117,7 +127,6 @@ def upload_blob(hashalgo, blobhash):
 application = app
 
 def main():
-    # TODO: debug should be False in production
     app.run(host='0.0.0.0', port=8080, debug=False, reloader=True)
 
 if __name__ == '__main__':
