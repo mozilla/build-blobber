@@ -2,7 +2,7 @@
 METADATA_SIZE_LIMIT = 1950
 
 # file size limit current set to 5MB
-FILE_SIZE_LIMIT = 5000000
+FILE_SIZE_LIMIT = 150000000
 
 security_config = {
     # subnets as comma separated string
@@ -10,6 +10,8 @@ security_config = {
         '10.0.0.0/8',
     ],
     'allowed_filetypes': [
+        'zip',
+        'etl',
         'dmp',
         'txt',
         'log',
