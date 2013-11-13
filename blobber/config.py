@@ -1,8 +1,7 @@
 # actual size limit is 2KB
 METADATA_SIZE_LIMIT = 1950
 
-# file size limit current set to 5MB
-FILE_SIZE_LIMIT = 150000000
+FILE_SIZE_LIMIT = 400 * 1024 * 1024
 
 security_config = {
     # subnets as comma separated string
@@ -25,8 +24,8 @@ security_config = {
 blob_mimetypes = {
     'txt': 'text/plain',
     'log': 'text/plain',
-    'gif' : 'image/gif',
-    'png' : 'image/png',
-    'jpeg' : 'image/jpg',
-    'jpg' : 'image/jpg',
+    'gif': 'image/gif',
+    'png': 'image/png',
+    'jpeg': 'image/jpg',
+    'jpg': 'image/jpg',
 }
