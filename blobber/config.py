@@ -17,6 +17,7 @@ security_config = {
         'gif',
         'jpg', 'jpeg',
         'png',
+        'html',
     ],
 }
 
@@ -28,4 +29,5 @@ blob_mimetypes = {
     'png': 'image/png',
     'jpeg': 'image/jpg',
     'jpg': 'image/jpg',
+    'html': 'text/html',
 }
