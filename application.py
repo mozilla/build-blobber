@@ -48,7 +48,7 @@ def set_aws_request_headers(filename, default_mimetype):
     mimetype = get_blob_mimetype(filename, default_mimetype)
     headers = {
         'Content-Type': mimetype,
-        'Content-Disposition' : 'inline; filename="%s"' % (filename),
+        'Content-Disposition': 'inline; filename="%s"' % (filename),
     }
 
     return headers
@@ -87,8 +87,9 @@ def upload_blob(hashalgo, blobhash):
         fields = ('branch',)
         for field in fields:
             if field not in request.forms:
-                raise HTTPError(status=403,
-                                x_blobber_msg='Metadata %s field missing!' % (field))
+                raise HTTPError(
+                    status=403,
+                    x_blobber_msg='Metadata %s field missing!' % field)
 
         filename = request.files.blob.filename
         if not filetype_allowed(filename):
@@ -110,24 +111,27 @@ def upload_blob(hashalgo, blobhash):
                             x_blobber_msg='Metadata limit exceeded!')
 
         # add/update file on S3 machine along with its metadata
-        blob_url = upload_to_AmazonS3(hashalgo,
-                                      blobhash,
-                                      tmpfile,
-                                      headers,
-                                      meta_dict)
+        try:
+            blob_url = upload_to_AmazonS3(hashalgo, blobhash, tmpfile, headers,
+                                          meta_dict)
+            # return URL in reponse headers
+            response.set_header('x-blob-url', blob_url)
+            response.set_header('x-blob-filename', filename)
+            response.status = 202
+        except Exception:
+            log.error("Failed uploading to S3", exc_info=True)
+            raise HTTPError(status=500, x_blobber_msg="Failed uploading to S3")
 
-        # return URL in reponse headers
-        response.set_header('x-blob-url', blob_url)
-        response.set_header('x-blob-filename', filename)
-        response.status = 202
     finally:
         os.unlink(tmpfile)
 
 
 application = app
 
+
 def main():
     app.run(host='0.0.0.0', port=8080, debug=False, reloader=True)
+
 
 if __name__ == '__main__':
     main()
