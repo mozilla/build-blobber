@@ -7,6 +7,7 @@ security_config = {
     # subnets as comma separated string
     'allowed_ips': [
         '10.0.0.0/8',
+        '127.0.0.1/32',
     ],
     'allowed_filetypes': [
         'zip',
