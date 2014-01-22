@@ -40,7 +40,7 @@ def save_request_file(fileobj, hashalgo=None):
         raise
 
 
-def set_aws_request_headers(filename, default_mimetype):
+def set_aws_request_headers(filename, default_mimetype, compression):
     """
     Set headers for file to Amazon S3 storage use and return them
 
@@ -50,6 +50,8 @@ def set_aws_request_headers(filename, default_mimetype):
         'Content-Type': mimetype,
         'Content-Disposition': 'inline; filename="%s"' % (filename),
     }
+    if compression:
+        headers['Content-Encoding'] = compression
 
     return headers
 
@@ -99,7 +101,9 @@ def upload_blob(hashalgo, blobhash):
         # make sure to drop other possible metadata fields
         meta_dict.update({k: request.forms[k] for k in fields})
 
-        headers = set_aws_request_headers(filename, request.files.blob.type)
+        compression = 'gzip' if request.forms.get('compressed', None) else None
+        headers = set_aws_request_headers(filename, request.files.blob.type,
+                                          compression)
         # update metadata should it contain a renderable mimetype
         meta_dict['mimetype'] = headers['Content-Type']
 
