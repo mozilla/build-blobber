@@ -32,4 +32,5 @@ blob_mimetypes = {
     'jpeg': 'image/jpg',
     'jpg': 'image/jpg',
     'html': 'text/html',
+    'extra': 'text/plain',
 }
