@@ -19,6 +19,7 @@ security_config = {
         'jpg', 'jpeg',
         'png',
         'html',
+        'extra',
     ],
 }
 
