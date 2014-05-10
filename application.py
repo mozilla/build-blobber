@@ -7,8 +7,12 @@ import logging
 import time
 from functools import partial
 from bottle import Bottle, request, response, HTTPError
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
-from blobber import get_blob_mimetype, filetype_allowed
+from blobber import get_blob_mimetype, filetype_allowed, security_config
 from blobber.decorators import login_required, check_client_ip, attach_required
 from blobber.amazons3_backend import upload_to_AmazonS3
 from blobber.config import METADATA_SIZE_LIMIT, FILE_SIZE_LIMIT
@@ -54,6 +58,15 @@ def set_aws_request_headers(filename, default_mimetype, compression):
         headers['Content-Encoding'] = compression
 
     return headers
+
+
+@app.get('/blobs/whitelist')
+def get_allowed_filetypes():
+    response.content_type = 'application/json'
+    ret = {
+        "whitelist": security_config.get('allowed_filetypes', [])
+    }
+    return json.dumps(ret)
 
 
 @app.post('/blobs/:hashalgo/:blobhash')
