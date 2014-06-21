@@ -17,6 +17,7 @@ security_config = {
         'log',
         'gif',
         'jpg', 'jpeg',
+        'json',
         'png',
         'html',
         'extra',
@@ -31,6 +32,7 @@ blob_mimetypes = {
     'png': 'image/png',
     'jpeg': 'image/jpg',
     'jpg': 'image/jpg',
+    'json': 'application/json',
     'html': 'text/html',
     'extra': 'text/plain',
 }
