@@ -20,4 +20,4 @@ Uploading Files
 ===============
 This server is expected to be used with the [blobuploader] client.
 
-[blobuploader]: https://github.com/MihaiTabara/blobuploader
+[blobuploader]: https://github.com/mozilla/build-blobuploader
