@@ -114,7 +114,9 @@ def upload_blob(hashalgo, blobhash):
         # make sure to drop other possible metadata fields
         meta_dict.update({k: request.forms[k] for k in fields})
 
-        compression = 'gzip' if request.forms.get('compressed', None) == 'True' else None
+        compression = None
+        if request.forms.get('compressed', None) == 'True':
+            compression = 'gzip'
         headers = set_aws_request_headers(filename, request.files.blob.type,
                                           compression)
         # update metadata should it contain a renderable mimetype
