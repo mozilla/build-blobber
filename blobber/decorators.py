@@ -5,6 +5,7 @@ from functools import wraps
 
 from .config import security_config
 
+
 def login_required(fn):
     """
     Decorator to ensure client uses Basic Auth, secure HTTPs and has the
@@ -23,8 +24,9 @@ def login_required(fn):
         USER = os.environ.get("CLIENT_USERNAME")
         PASSWORD = os.environ.get("CLIENT_PASSWORD")
         if not USER or not PASSWORD:
-            raise HTTPError(status=500,
-                            x_blobber_msg='Client credentials unset on server!')
+            raise HTTPError(
+                status=500,
+                x_blobber_msg='Client credentials unset on server!')
 
         if (req_user, req_passwd) != (USER, PASSWORD):
             raise HTTPError(status=403,
@@ -44,8 +46,9 @@ def check_client_ip(fn):
     def wrapper(*args, **kwargs):
         client_ip = request.remote_addr
         if not client_ip or not ip_allowed(client_ip):
-            raise HTTPError(status=403,
-                        x_blobber_msg='Client IP not allowed to call server!')
+            raise HTTPError(
+                status=403,
+                x_blobber_msg='Client IP not allowed to call server!')
         return fn(**kwargs)
 
     return wrapper

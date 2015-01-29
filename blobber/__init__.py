@@ -1,5 +1,6 @@
 from .config import blob_mimetypes, security_config
 
+
 def get_blob_mimetype(filename, default_mimetype):
     """
     Helper function to be used by application when setting the headers.
