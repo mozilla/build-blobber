@@ -1,5 +1,4 @@
 import os
-import urlparse
 from boto.s3.connection import S3Connection
 
 
@@ -55,6 +54,4 @@ def upload_to_AmazonS3(hashalgo, blobhash, data_file, headers, metadata):
             key.set_acl('public-read')
 
     # return the blob URL
-    amazon_baseurl = "http://" + BUCKET + ".s3.amazonaws.com"
-    blob_url = urlparse.urljoin(amazon_baseurl, _key)
-    return blob_url
+    return key.generate_url(expires_in=0, query_auth=False)
