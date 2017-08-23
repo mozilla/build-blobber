@@ -55,6 +55,6 @@ def upload_to_AmazonS3(hashalgo, blobhash, data_file, headers, metadata):
             key.set_acl('public-read')
 
     # return the blob URL
-    amazon_baseurl = "http://" + BUCKET + ".s3.amazonaws.com"
+    amazon_baseurl = "https://" + BUCKET + ".s3.amazonaws.com"
     blob_url = urlparse.urljoin(amazon_baseurl, _key)
     return blob_url
